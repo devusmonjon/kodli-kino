@@ -124,7 +124,9 @@ bot.on('callback_query', (ctx) => {
 
 app.get('/setWebhook', async (req, res) => {
     try {
-        await bot.telegram.setWebhook(`https://${req.get('host')}/bot${token}`);
+        await bot.telegram.setWebhook(`https://${req.get('host')}/bot${token}`, {
+            drop_pending_updates: true
+        });
         res.send('Webhook set');
     } catch (error) {
         res.send(error.message);
