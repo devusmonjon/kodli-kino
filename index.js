@@ -14,7 +14,7 @@ app.use(bot.webhookCallback(`/bot${token}`));
 
 
 // MongoDB connection
-mongoose.connect("mongodb+srv://usmonjonhasanov777:pUWP78qglHe4STYr@cluster0.xc6ydes.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", {
+mongoose.connect("process.env.MONGODB_URI", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 });
