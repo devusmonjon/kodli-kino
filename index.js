@@ -14,7 +14,7 @@ app.use(bot.webhookCallback(`/bot${token}`));
 
 
 // MongoDB connection
-mongoose.connect(process.env.MONGODB_URI, {
+mongoose.connect("mongodb+srv://usmonjonhasanov777:pUWP78qglHe4STYr@cluster0.xc6ydes.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 });
@@ -133,7 +133,7 @@ app.get('/setWebhook', async (req, res) => {
     }
 });
 
-// bot.launch();
+bot.launch();
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
