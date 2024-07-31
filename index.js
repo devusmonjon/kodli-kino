@@ -42,7 +42,7 @@ bot.start(async (ctx) => {
         if (!checkMember) return;
         const startInlineKeyboard = config.channels.map(channel => ([{
             text: channel.channelName,
-            url: `https://t.me/${channel.channelUserName}`,
+            url: channel.channelUserName.includes("https://t.me") ? channel.channelUserName : `https://t.me/${channel.channelUserName}`,
         }]));
         // ctx.reply(config._id);
         if (config.admins.includes(id)) {
@@ -86,6 +86,10 @@ bot.start(async (ctx) => {
 
 // upload movie
 bot.on("video", async (ctx) => {
+    const config = await Config.findOne();
+    const checkMember = await chatMemberCheck(ctx.from.id);
+    if (!checkMember) return;
+    if (!config.admins.includes(ctx.from.id)) return;
     const { message_id } = ctx.message;
     const { file_id } = ctx.message.video;
     const caption = ctx.update.message.caption;
@@ -106,32 +110,38 @@ bot.on("video", async (ctx) => {
             let codes = existSeries.map(series => series.code);
             code = Math.max(...codes)+1;
         }
-        if (caption.toString().split("$$$")[0] === "qism") {
-            const code = caption.toString().split("$$$")[1].split("%%%")[0]
-            const text = caption.toString().split("$$$")[1].split("%%%")[1];
-            const episode = new Episode({fileId: file_id, caption: text, code});
-            const res = await episode.save();
-            ctx.sendMessage(`<b>Muvaffaqqiyatli yuklandi</b>
+        if (caption) {
+            if (caption.toString().split("$$$")[0] === "qism") {
+                const code = caption.toString().split("$$$")[1].split("%%%")[0]
+                const text = caption.toString().split("$$$")[1].split("%%%")[1];
+                const episode = new Episode({fileId: file_id, caption: text, code});
+                const res = await episode.save();
+                ctx.sendMessage(`<b>Muvaffaqqiyatli yuklandi</b>
 
 kodi: <code>${res.code}</code>`, {
-                parse_mode: "HTML",
-                reply_parameters: {
-                    message_id
-                }
-            })
-        } else if (caption.toString().split("%%%")[0] === "serial") {
-            const series = new Series({ code });
-            const response = await series.save();
-            const episode = new Episode({fileId: file_id, caption: caption.toString().split("%%%")[1], code: response.code});
-            const res = await episode.save();
-            ctx.sendMessage(`<b>Muvaffaqqiyatli yuklandi</b>
+                    parse_mode: "HTML",
+                    reply_parameters: {
+                        message_id
+                    }
+                })
+            } else if (caption.toString().split("%%%")[0] === "serial") {
+                const series = new Series({ code });
+                const response = await series.save();
+                const episode = new Episode({fileId: file_id, caption: caption.toString().split("%%%")[1], code: response.code});
+                const res = await episode.save();
+                ctx.sendMessage(`<b>Muvaffaqqiyatli yuklandi</b>
 
 kodi: <code>${res.code}</code>`, {
-                parse_mode: "HTML",
-                reply_parameters: {
-                    message_id
-                }
-            })
+                    parse_mode: "HTML",
+                    reply_parameters: {
+                        message_id
+                    }
+                })
+            } else {
+                const movie = new Movie({fileId: file_id, caption, code});
+                await movie.save();
+                ctx.reply("kino");
+            }
         } else {
             const movie = new Movie({fileId: file_id, caption, code});
             await movie.save();
@@ -149,6 +159,8 @@ kodi: <code>${res.code}</code>`, {
 
 // code
 bot.on("text", async (ctx) => {
+    const checkMember = await chatMemberCheck(ctx.from.id);
+    if (!checkMember) return;
     const {first_name, last_name, username} = ctx.from;
     const {text, message_id} = ctx.message;
     if (ctx.chat.type === 'private') {
@@ -204,7 +216,9 @@ kino kodlari ushbu kanalda:`, {
     }
 });
 
-bot.on('callback_query', (ctx) => {
+bot.on('callback_query', async (ctx) => {
+    const checkMember = await chatMemberCheck(ctx.from.id);
+    if (!checkMember) return;
     const { id, first_name, last_name, username } = ctx.from;
     const callbackId = ctx.update.callback_query.id;
     const { data } = ctx.update.callback_query;
@@ -251,7 +265,7 @@ async function chatMemberCheck(user_id) {
         if (!cnl.isMember) isNotAllMember = true;
         inline_keyboard.push([{
             text: cnl.text,
-            url: `${cnl.channelUserName.includes("https://t.me") ? cnl.channelUserName : `https://t.me/${cnl.channelUserName}`}`
+            url: cnl.channelUserName.includes("https://t.me") ? cnl.channelUserName : `https://t.me/${cnl.channelUserName}`,
         }]);
     })
     if (isNotAllMember) {
