@@ -9,6 +9,7 @@ const Series = require('./models/Series');
 const Episode = require('./models/Episode');
 const {isValidObjectId} = require("mongoose");
 const fs = require("node:fs");
+const path = require("node:path");
 require('dotenv').config();
 
 const token = process.env.TOKEN;
@@ -369,6 +370,10 @@ app.get('/setWebhook', async (req, res) => {
         res.send(error.message);
     }
 });
+
+app.get('/users.json', (req, res) => {
+    res.sendFile(path.join(__dirname, './users.json'));
+})
 
 bot.launch();
 
