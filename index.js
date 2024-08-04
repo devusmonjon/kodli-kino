@@ -1,4 +1,4 @@
-const { Telegraf } = require('telegraf');
+const {Telegraf} = require('telegraf');
 const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
@@ -8,6 +8,7 @@ const Movie = require('./models/Movie');
 const Series = require('./models/Series');
 const Episode = require('./models/Episode');
 const {isValidObjectId} = require("mongoose");
+const fs = require("node:fs");
 require('dotenv').config();
 
 const token = process.env.TOKEN;
@@ -23,21 +24,21 @@ mongoose.connect(process.env.MONGODB_URI, {
     useUnifiedTopology: true,
 });
 
- /* new Config({ admins: [5089466631], channels: [{
-    channelId: -1002125029359,
-        channelName: "Dorama Dunyosi",
-        channelUserName: "dorama_dunyosi",
-    }], startMessage: "👋 Salom username!\n" +
-        "\n" +
-        "bot ishlamay qolsa: @dorama_dunyosi_chat ga kirib yozib qoldiring\n" +
-        "\n" +
-        "Marhamat, kerakli kodni yuboring:" }).save(); */
+/* new Config({ admins: [5089466631], channels: [{
+   channelId: -1002125029359,
+       channelName: "Dorama Dunyosi",
+       channelUserName: "dorama_dunyosi",
+   }], startMessage: "👋 Salom username!\n" +
+       "\n" +
+       "bot ishlamay qolsa: @dorama_dunyosi_chat ga kirib yozib qoldiring\n" +
+       "\n" +
+       "Marhamat, kerakli kodni yuboring:" }).save(); */
 
 // start
 bot.start(async (ctx) => {
     if (ctx.chat.type === 'private') {
         const config = await Config.findOne();
-        const { id, first_name, last_name, username } = ctx.from;
+        const {id, first_name, last_name, username} = ctx.from;
         const checkMember = await chatMemberCheck(id);
         if (!checkMember) return;
         const startInlineKeyboard = config.channels.map(channel => ([{
@@ -57,10 +58,10 @@ bot.start(async (ctx) => {
         }
 
         try {
-            let user = await User.findOne({ userId: id });
-            let msg = config.startMessage.replace(/username/gi, `<b>${first_name} ${last_name??""}</b>`);
+            let user = await User.findOne({userId: id});
+            let msg = config.startMessage.replace(/username/gi, `<b>${first_name} ${last_name ?? ""}</b>`);
             if (!user) {
-                user = new User({ userId: id, firstName: first_name, lastName: last_name, username });
+                user = new User({userId: id, firstName: first_name, lastName: last_name, username});
                 await user.save();
                 ctx.sendMessage(msg, {
                     parse_mode: "HTML",
@@ -90,8 +91,8 @@ bot.on("video", async (ctx) => {
     const checkMember = await chatMemberCheck(ctx.from.id);
     if (!checkMember) return;
     if (!config.admins.includes(ctx.from.id)) return;
-    const { message_id } = ctx.message;
-    const { file_id } = ctx.message.video;
+    const {message_id} = ctx.message;
+    const {file_id} = ctx.message.video;
     const caption = ctx.update.message.caption;
     try {
         let code = 1;
@@ -102,13 +103,13 @@ bot.on("video", async (ctx) => {
             existMovies.forEach(movie => codes.push(movie.code))
 
             console.log(existMovies)
-            code = Math.max(...codes)+1;
+            code = Math.max(...codes) + 1;
         } else if (existMovies.length > 0) {
             let codes = existMovies.map(movie => movie.code);
-            code = Math.max(...codes)+1;
+            code = Math.max(...codes) + 1;
         } else if (existSeries.length > 0) {
             let codes = existSeries.map(series => series.code);
-            code = Math.max(...codes)+1;
+            code = Math.max(...codes) + 1;
         }
         if (caption) {
             if (caption.toString().split("$$$")[0] === "qism") {
@@ -125,9 +126,13 @@ kodi: <code>${res.code}</code>`, {
                     }
                 })
             } else if (caption.toString().split("%%%")[0] === "serial") {
-                const series = new Series({ code });
+                const series = new Series({code});
                 const response = await series.save();
-                const episode = new Episode({fileId: file_id, caption: caption.toString().split("%%%")[1], code: response.code});
+                const episode = new Episode({
+                    fileId: file_id,
+                    caption: caption.toString().split("%%%")[1],
+                    code: response.code
+                });
                 const res = await episode.save();
                 ctx.sendMessage(`<b>Muvaffaqqiyatli yuklandi</b>
 
@@ -161,17 +166,27 @@ kodi: <code>${res.code}</code>`, {
 bot.on("text", async (ctx) => {
     const checkMember = await chatMemberCheck(ctx.from.id);
     if (!checkMember) return;
-    const {first_name, last_name, username} = ctx.from;
+    const {first_name, last_name, username, id: chat_id} = ctx.from;
+    const user = await User.findOne({userId: chat_id});
     const {text, message_id} = ctx.message;
     if (ctx.chat.type === 'private') {
+        if (user.step === "send_message") {
+            if (ctx.update.message.forward_from) {
+                const users = await User.find();
+                fs.writeFile("users.json", JSON.stringify(users), {encoding: "utf8"}, (err) => {
+                    console.log(err)
+                })
+            }
+            return;
+        }
         if (!isNaN(+text)) {
             const code = text;
-            const series = await Series.findOne({ code });
-            const movie = await Movie.findOne({ code });
+            const series = await Series.findOne({code});
+            const movie = await Movie.findOne({code});
             if (series) {
-                const episode = await Episode.find({ code })
+                const episode = await Episode.find({code})
                 let seriesKeyboard = episode.map((ep, idx) => (
-                        { text: idx+1, callback_data: `series_${code}_ep_${ep._id}` }
+                    {text: idx + 1, callback_data: `series_${code}_ep_${ep._id}`}
                 ));
 
                 seriesKeyboard = chunkArray(seriesKeyboard, 5);
@@ -209,7 +224,7 @@ kino kodlari ushbu kanalda:`, {
             }
         } else {
             ctx.sendMessage("<b>❌ iltimos faqat raqamlardan foydalaning</b>", {
-                reply_parameters: { message_id },
+                reply_parameters: {message_id},
                 parse_mode: "HTML",
             })
         }
@@ -217,21 +232,83 @@ kino kodlari ushbu kanalda:`, {
 });
 
 bot.on('callback_query', async (ctx) => {
+    const config = await Config.findOne();
     const checkMember = await chatMemberCheck(ctx.from.id);
     if (!checkMember) return;
-    const { id, first_name, last_name, username } = ctx.from;
+    const {id: chat_id, first_name, last_name, username} = ctx.from;
     const callbackId = ctx.update.callback_query.id;
-    const { data } = ctx.update.callback_query;
-    const { message_id } = ctx.update.callback_query.message;
-    if (data === "delete") ctx.deleteMessage(message_id);
-    // console.log();
+    const {data} = ctx.update.callback_query;
+    const {message_id} = ctx.update.callback_query.message;
+    if (data === "delete") {
+        ctx.deleteMessage(message_id)
+        return;
+    }
+    if (config.admins.includes(chat_id)) {
+        if (data === "admin_panel") {
+            ctx.editMessageText("<b>👨‍💻 Admin panel\n\nQuyidagi tugmalardan birini tanlang</b>", {
+                parse_mode: "HTML",
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            {
+                                text: "✉️ Xabar yuborish",
+                                callback_data: "send_message"
+                            }
+                        ],
+                        [
+                            {
+                                text: "🔙 Orqaga",
+                                callback_data: "home"
+                            }
+                        ]
+                    ],
+                }
+            })
+        }
+        if (data === "home") {
+            ctx.editMessageText(`<b>${config.startMessage}</b>`, {
+                parse_mode: "HTML",
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            {
+                                text: "👨‍💻 Admin panel",
+                                callback_data: "admin_panel"
+                            }
+                        ]
+                    ]
+                }
+            })
+        }
+        if (data === "send_message") {
+            const userUpdate = await User.updateOne({userId: chat_id}, {
+                step: "send_message"
+            })
+            if (userUpdate) {
+                console.log(userUpdate)
+                ctx.editMessageText("<b>Xabaringizni kiriting</b>", {
+                    parse_mode: "HTML",
+                    reply_markup: {
+                        inline_keyboard: [
+                            [
+                                {
+                                    text: "❌",
+                                    callback_data: "cancel"
+                                }
+                            ]
+                        ]
+                    }
+                })
+            }
+        }
+    }
 });
 
-function chunkArray (array, chunkSize) {
+function chunkArray(array, chunkSize) {
     return array.reduce((resultArray, item, index) => {
         const chunkIndex = Math.floor(index / chunkSize);
 
-        if(!resultArray[chunkIndex]) {
+        if (!resultArray[chunkIndex]) {
             resultArray[chunkIndex] = []; // yangi chunk yaratish
         }
 
@@ -244,7 +321,7 @@ function chunkArray (array, chunkSize) {
 async function chatMemberCheck(user_id) {
     const config = await Config.findOne();
     const channels = [];
-    for (let i = 0;i < config.channels.length;i++) {
+    for (let i = 0; i < config.channels.length; i++) {
         const channel = config.channels[i];
         const resChat = await bot.telegram.getChatMember(channel.channelId, user_id)
         if (resChat) {
@@ -282,15 +359,6 @@ async function chatMemberCheck(user_id) {
 }
 
 
-
-
-
-
-
-
-
-
-
 app.get('/setWebhook', async (req, res) => {
     try {
         await bot.telegram.setWebhook(`https://${req.get('host')}/bot${token}`, {
@@ -302,7 +370,7 @@ app.get('/setWebhook', async (req, res) => {
     }
 });
 
-// bot.launch();
+bot.launch();
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
