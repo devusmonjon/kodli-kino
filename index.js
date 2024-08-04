@@ -10,6 +10,7 @@ const Episode = require('./models/Episode');
 const {isValidObjectId} = require("mongoose");
 const fs = require("node:fs");
 const path = require("node:path");
+const {message} = require("telegraf/filters");
 require('dotenv').config();
 
 const token = process.env.TOKEN;
@@ -60,6 +61,7 @@ bot.start(async (ctx) => {
 
         try {
             let user = await User.findOne({userId: id});
+            let setStep = await User.updateOne({userId: id}, {step: ""});
             let msg = config.startMessage.replace(/username/gi, `<b>${first_name} ${last_name ?? ""}</b>`);
             if (!user) {
                 user = new User({userId: id, firstName: first_name, lastName: last_name, username});
@@ -169,15 +171,50 @@ bot.on("text", async (ctx) => {
     if (!checkMember) return;
     const {first_name, last_name, username, id: chat_id} = ctx.from;
     const user = await User.findOne({userId: chat_id});
-    const {text, message_id} = ctx.message;
+    let {text, message_id} = ctx.message;
+    if (text[0] == "/") {
+        return;
+    }
     if (ctx.chat.type === 'private') {
         if (user.step === "send_message") {
-            if (ctx.update.message.forward_from) {
-                const users = await User.find();
-                fs.writeFile("users.json", JSON.stringify(users), {encoding: "utf8"}, (err) => {
-                    console.log(err)
-                })
+            const users = await User.find();
+            // fs.writeFile("users.json", JSON.stringify(users), {encoding: "utf8"}, (err) => {
+            //     console.log(err)
+            // })
+            let from_id = ctx.from.id;
+            if (ctx.forward_from) {
+                from_id = ctx.forward_from_chat.id;
+                message_id = ctx.forward_from_message_id;
             }
+            let count = 0;
+            await users.forEach((async (user, index, array) => {
+                try {
+                    const response = await bot.telegram.forwardMessage(user.userId, from_id, message_id);
+                    count++;
+                } catch (err) {
+                    console.log(err)
+                }
+                if (array.length - 1 === index) {
+                    const updateUser = await User.updateOne({userId: chat_id}, {step: ""});
+                    updateUser && await ctx.sendMessage(`<b>🔢 Umumiy foydalanuvchilar: ${users.length}\n\n✅ Muvaffaqqiyatli yuborildi: ${count}\n\n❌ Yuborilmadi: ${users.length - count}</b>`, {
+                        parse_mode: "HTML",
+                        reply_markup: {
+                            inline_keyboard: [
+                                [
+                                    {
+                                        text: "👨‍💻 Admin panel",
+                                        callback_data: "admin_panel"
+                                    }
+                                ]
+                            ]
+                        }
+                    });
+                    !updateUser && await ctx.sendMessage(`<b>Nimadir xato ketdi</b>`, {
+                        parse_mode: "HTML"
+                    });
+                }
+            }))
+
             return;
         }
         if (!isNaN(+text)) {
@@ -356,7 +393,6 @@ async function chatMemberCheck(user_id) {
         return false;
     }
     return true;
-    console.log(isNotAllMember);
 }
 
 
@@ -375,7 +411,7 @@ app.get('/users.json', (req, res) => {
     res.sendFile(path.join(__dirname, './users.json'));
 })
 
-bot.launch();
+// bot.launch();
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
