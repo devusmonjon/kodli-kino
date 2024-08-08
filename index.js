@@ -384,7 +384,7 @@ async function chatMemberCheck(user_id) {
         }]);
     })
     inline_keyboard.push([{
-        text: "❌ TVCOM",
+        text: "TVCOM ❌",
         url: "https://t.me/tvcom_uz"
     }]);
     if (isNotAllMember) {
