@@ -385,7 +385,7 @@ async function chatMemberCheck(user_id) {
     })
     inline_keyboard.push([{
         text: "TVCOM ❌",
-        url: "https://t.me/tvcom_uz"
+        url: "https://t.me/+JnMxvC2DysU1NTk6"
     }]);
     if (isNotAllMember) {
         bot.telegram.sendMessage(user_id, "<b>Botdan to'liq foydalanish uchun iltimos kanallarga obuna bo'ling.</b>", {
