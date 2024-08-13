@@ -383,10 +383,10 @@ async function chatMemberCheck(user_id) {
             url: cnl.channelUserName.includes("https://t.me") ? cnl.channelUserName : `https://t.me/${cnl.channelUserName}`,
         }]);
     })
-    inline_keyboard.push([{
-        text: "TVCOM ❌",
-        url: "https://t.me/+JnMxvC2DysU1NTk6"
-    }]);
+    // inline_keyboard.push([{
+    //     text: "TVCOM ❌",
+    //     url: "https://t.me/+JnMxvC2DysU1NTk6"
+    // }]);
     if (isNotAllMember) {
         bot.telegram.sendMessage(user_id, "<b>Botdan to'liq foydalanish uchun iltimos kanallarga obuna bo'ling.</b>", {
             parse_mode: "HTML",
