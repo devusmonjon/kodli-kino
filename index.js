@@ -339,7 +339,25 @@ bot.on('callback_query', async (ctx) => {
                 })
             }
         }
+        if (data === "statistics") {
+            const users = await User.find();
+            ctx.editMessageText(`<b>Statistics</b>
+
+foydalanuvchilar soni: <i>${users.length}</i>`, {
+                parse_mode: "HTML",
+                // reply_markup: {
+                //     inline_keyboard: [
+                //         [
+                //             {
+                //                 text: ""
+                //             }
+                //         ]
+                //     ]
+                // }
+            })
+        }
     }
+    console.log(data)
 });
 
 function chunkArray(array, chunkSize) {
@@ -415,7 +433,7 @@ app.get('/users.json', (req, res) => {
     res.sendFile(path.join(__dirname, './users.json'));
 })
 
-// bot.launch();
+bot.launch();
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
