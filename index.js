@@ -296,7 +296,7 @@ bot.on('callback_query', async (ctx) => {
                         [
                             {
                                 text: "📊 Statistics",
-                                callback_data: "send_message"
+                                callback_data: "stctistics"
                             }
                         ],
                         [
@@ -351,15 +351,16 @@ bot.on('callback_query', async (ctx) => {
 
 foydalanuvchilar soni: <i>${users.length}</i>`, {
                 parse_mode: "HTML",
-                // reply_markup: {
-                //     inline_keyboard: [
-                //         [
-                //             {
-                //                 text: ""
-                //             }
-                //         ]
-                //     ]
-                // }
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            {
+                                text: "🔙 Orqaga",
+                                callback_data: "home"
+                            }
+                        ]
+                    ]
+                }
             })
         }
     }
