@@ -347,9 +347,9 @@ bot.on('callback_query', async (ctx) => {
         }
         if (data === "statistics") {
             const users = await User.find();
-            ctx.editMessageText(`<b>Statistics</b>
-
-foydalanuvchilar soni: <i>${users.length}</i>`, {
+            console.log()
+            ctx.editMessageText(`<b>📊 Statistics</b>
+Foydalanuvchilar: ${users.length}`, {
                 parse_mode: "HTML",
                 reply_markup: {
                     inline_keyboard: [
@@ -385,18 +385,22 @@ async function chatMemberCheck(user_id) {
     const config = await Config.findOne();
     const channels = [];
     for (let i = 0; i < config.channels.length; i++) {
-        const channel = config.channels[i];
-        const resChat = await bot.telegram.getChatMember(channel.channelId, user_id)
-        if (resChat) {
-            const status = resChat.status !== "left";
-            channels.push(
-                {
-                    isMember: status,
-                    channelUserName: channel.channelUserName,
-                    channelId: channel.channelId,
-                    text: `${channel.channelName} ${status ? "✅" : "❌"}`
-                }
-            );
+        try {
+            const channel = config.channels[i];
+            const resChat = await bot.telegram.getChatMember(channel.channelId, user_id)
+            if (resChat) {
+                const status = resChat.status !== "left";
+                channels.push(
+                    {
+                        isMember: status,
+                        channelUserName: channel.channelUserName,
+                        channelId: channel.channelId,
+                        text: `${channel.channelName} ${status ? "✅" : "❌"}`
+                    }
+                );
+            }
+        } catch (err) {
+            console.log(err)
         }
     }
     const inline_keyboard = [];
@@ -413,12 +417,16 @@ async function chatMemberCheck(user_id) {
     //     url: "https://t.me/+JnMxvC2DysU1NTk6"
     // }]);
     if (isNotAllMember) {
-        bot.telegram.sendMessage(user_id, "<b>Botdan to'liq foydalanish uchun iltimos kanallarga obuna bo'ling.</b>", {
-            parse_mode: "HTML",
-            reply_markup: {
-                inline_keyboard,
-            }
-        })
+        try {
+            bot.telegram.sendMessage(user_id, "<b>Botdan to'liq foydalanish uchun iltimos kanallarga obuna bo'ling.</b>", {
+                parse_mode: "HTML",
+                reply_markup: {
+                    inline_keyboard,
+                }
+            })
+        } catch (err) {
+            console.log(err)
+        }
         return false;
     }
     return true;
