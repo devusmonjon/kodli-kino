@@ -439,7 +439,7 @@ app.get('/users.json', (req, res) => {
     res.sendFile(path.join(__dirname, './users.json'));
 })
 
-bot.launch();
+// bot.launch();
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
