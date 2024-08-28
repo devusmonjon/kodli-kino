@@ -295,6 +295,12 @@ bot.on('callback_query', async (ctx) => {
                         ],
                         [
                             {
+                                text: "✉📊 Statistics",
+                                callback_data: "send_message"
+                            }
+                        ],
+                        [
+                            {
                                 text: "🔙 Orqaga",
                                 callback_data: "home"
                             }
