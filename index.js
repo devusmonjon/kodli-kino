@@ -295,7 +295,7 @@ bot.on('callback_query', async (ctx) => {
                         ],
                         [
                             {
-                                text: "✉📊 Statistics",
+                                text: "📊 Statistics",
                                 callback_data: "send_message"
                             }
                         ],
