@@ -439,7 +439,9 @@ app.get('/users.json', (req, res) => {
     res.sendFile(path.join(__dirname, './users.json'));
 })
 
-// bot.launch();
+if (process.env.PRODUCTION != "true") {
+   bot.launch();
+}
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
