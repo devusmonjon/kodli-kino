@@ -395,7 +395,7 @@ async function chatMemberCheck(user_id) {
                         isMember: status,
                         channelUserName: channel.channelUserName,
                         channelId: channel.channelId,
-                        text: `${channel.channelName} ${status ? "✅" : "❌"}`
+                        text: `${status ? "✅" : "❌"} ${channel.channelName}`
                     }
                 );
             }
@@ -417,7 +417,7 @@ async function chatMemberCheck(user_id) {
     //     url: "https://t.me/+JnMxvC2DysU1NTk6"
     // }]);
     inline_keyboard.push([{
-            text: "Instagram E'bo'lim marvaridi",
+            text: "❌ Instagram E'bo'lim marvaridi",
             url: "https://www.instagram.com/dorama_dunyosi",
         }]);
     if (isNotAllMember) {
