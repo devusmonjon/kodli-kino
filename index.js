@@ -416,6 +416,10 @@ async function chatMemberCheck(user_id) {
     //     text: "TVCOM ❌",
     //     url: "https://t.me/+JnMxvC2DysU1NTk6"
     // }]);
+    inline_keyboard.push([{
+            text: "Instagram E'bo'lim marvaridi",
+            url: "https://www.instagram.com/dorama_dunyosi",
+        }]);
     if (isNotAllMember) {
         try {
             bot.telegram.sendMessage(user_id, "<b>Botdan to'liq foydalanish uchun iltimos kanallarga obuna bo'ling.</b>", {
